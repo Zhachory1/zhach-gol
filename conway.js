@@ -19,7 +19,7 @@ let underPopStr = 'Under Population Death Threshold: ';
 // Slider to control the threshold to kill cells due to over population
 let overPopSlider;
 let overPopLabel;
-let overPopStr = 'Over Population Death Threshold Threshold: ';
+let overPopStr = 'Over Population Death Threshold: ';
 
 function randomColor() {
   return color(

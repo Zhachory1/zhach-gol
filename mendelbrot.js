@@ -19,9 +19,9 @@ let mendelUnderPopStr = 'Under Population Death Threshold: ';
 // Slider to control the threshold to kill cells due to over population
 let mendelOverPopSlider;
 let mendelOverPopLabel;
-let mendelOverPopStr = 'Over Population Death Threshold Threshold: ';
+let mendelOverPopStr = 'Over Population Death Threshold: ';
 
-function mendelrandomColor() {
+function mendelRandomColor() {
   return color(
     floor(random(255)),
     floor(random(255)),
