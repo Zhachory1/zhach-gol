@@ -1,7 +1,14 @@
+
 let currentMode = 'conway'; // 'conway' or 'mendelbrot'
 let toggleButton;
+let conwayGame;
+let mendelbrotSim;
 
 function setup() {
+  // Create class instances
+  conwayGame = new ConwayGameOfLife();
+  mendelbrotSim = new MendelbrotSimulation();
+  
   // Create toggle button
   toggleButton = createButton('Switch to Mendelbrot');
   toggleButton.position(10, 10);
@@ -14,33 +21,33 @@ function setup() {
   toggleButton.style('cursor', 'pointer');
   
   if (currentMode === 'conway') {
-    conwaySetup();
+    conwayGame.setup();
   } else {
-    mendelSetup();
+    mendelbrotSim.setup();
   }
 }
 
 function draw() {
   if (currentMode === 'conway') {
-    conwayDraw();
+    conwayGame.draw();
   } else {
-    mendelDraw();
+    mendelbrotSim.draw();
   }
 }
 
 function mousePressed() {
   if (currentMode === 'conway') {
-    conwayMousePressed();
+    conwayGame.mousePressed();
   } else {
-    mendelMousePressed();
+    mendelbrotSim.mousePressed();
   }
 }
 
 function mouseDragged() {
   if (currentMode === 'conway') {
-    conwayMouseDragged();
+    conwayGame.mouseDragged();
   } else {
-    mendelMouseDragged();
+    mendelbrotSim.mouseDragged();
   }
 }
 
@@ -49,9 +56,9 @@ function windowResized() {
   toggleButton.position(10, 10);
   
   if (currentMode === 'conway') {
-    conwayWindowResized();
+    conwayGame.windowResized();
   } else {
-    mendelWindowResized();
+    mendelbrotSim.windowResized();
   }
 }
 
@@ -80,8 +87,8 @@ function toggleMode() {
   
   // Setup the new mode
   if (currentMode === 'conway') {
-    conwaySetup();
+    conwayGame.setup();
   } else {
-    mendelSetup();
+    mendelbrotSim.setup();
   }
 }
