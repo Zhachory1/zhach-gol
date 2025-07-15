@@ -272,7 +272,23 @@ class MendelbrotSimulation {
 
   setup() {
     createCanvas(windowWidth, windowHeight);
-    this.img = createImage(600, 400);
+    
+    // Calculate image size to fit window while maintaining 3:2 aspect ratio
+    let targetAspectRatio = 3 / 2; // 600:400 = 3:2
+    let windowAspectRatio = windowWidth / windowHeight;
+    
+    let imgWidth, imgHeight;
+    if (windowAspectRatio > targetAspectRatio) {
+      // Window is wider than image aspect ratio, fit to height
+      imgHeight = windowHeight * 0.8; // Leave some space for controls
+      imgWidth = imgHeight * targetAspectRatio;
+    } else {
+      // Window is taller than image aspect ratio, fit to width
+      imgWidth = windowWidth * 0.8; // Leave some space for controls
+      imgHeight = imgWidth / targetAspectRatio;
+    }
+    
+    this.img = createImage(Math.floor(imgWidth), Math.floor(imgHeight));
 
     const sliderFunctions = [
       (pos) => this.createIterSlider(pos),
@@ -332,6 +348,23 @@ class MendelbrotSimulation {
 
   windowResized() {
     resizeCanvas(windowWidth, windowHeight);
+    
+    // Recalculate image size to fit new window dimensions
+    let targetAspectRatio = 3 / 2; // 600:400 = 3:2
+    let windowAspectRatio = windowWidth / windowHeight;
+    
+    let imgWidth, imgHeight;
+    if (windowAspectRatio > targetAspectRatio) {
+      // Window is wider than image aspect ratio, fit to height
+      imgHeight = windowHeight * 0.8; // Leave some space for controls
+      imgWidth = imgHeight * targetAspectRatio;
+    } else {
+      // Window is taller than image aspect ratio, fit to width
+      imgWidth = windowWidth * 0.8; // Leave some space for controls
+      imgHeight = imgWidth / targetAspectRatio;
+    }
+    
+    this.img = createImage(Math.floor(imgWidth), Math.floor(imgHeight));
     this.repositionSliders();
   }
 }
