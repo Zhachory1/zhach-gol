@@ -124,6 +124,11 @@ class MendelbrotSimulation {
     // memoize cache for log
     this.log_cache = {};
 
+    // Zoom properties
+    this.zoomFactor = 2.0; // Fixed zoom ratio
+    this.imgX = 0; // Image position on canvas
+    this.imgY = 0;
+
     // String constants
     this.xRangeStr = 'X Range Min/Max: ';
     this.yRangeStr = 'Y Range Min/Max: ';
@@ -313,9 +318,9 @@ class MendelbrotSimulation {
     // Display the image centered
     let imgWidth = this.img.width;
     let imgHeight = this.img.height;
-    let x = (windowWidth - imgWidth) / 2;
-    let y = (windowHeight - imgHeight) / 2;
-    image(this.img, x, y);
+    this.imgX = (windowWidth - imgWidth) / 2;
+    this.imgY = (windowHeight - imgHeight) / 2;
+    image(this.img, this.imgX, this.imgY);
 
     // Update labels
     this.iterLabel.html(this.iterationStr + this.iter.value());
@@ -332,8 +337,60 @@ class MendelbrotSimulation {
   }
 
   mousePressed() {
+    // Check if click is on the image for zooming
+    if (mouseX >= this.imgX && mouseX <= this.imgX + this.img.width &&
+        mouseY >= this.imgY && mouseY <= this.imgY + this.img.height) {
+      this.zoomToPoint(mouseX, mouseY);
+      return;
+    }
+
     this.xRange.mousePressed();
     this.yRange.mousePressed();
+  }
+
+  zoomToPoint(clickX, clickY) {
+    // Convert click coordinates to image coordinates
+    let imgClickX = clickX - this.imgX;
+    let imgClickY = clickY - this.imgY;
+
+    // Convert image coordinates to complex plane coordinates
+    let xmin = this.xRange.getMin();
+    let xmax = this.xRange.getMax();
+    let ymin = this.yRange.getMin();
+    let ymax = this.yRange.getMax();
+
+    let complexX = xmin + (xmax - xmin) * imgClickX / this.img.width;
+    let complexY = ymin + (ymax - ymin) * imgClickY / this.img.height;
+
+    // Calculate new zoom range
+    let currentXRange = xmax - xmin;
+    let currentYRange = ymax - ymin;
+    let newXRange = currentXRange / this.zoomFactor;
+    let newYRange = currentYRange / this.zoomFactor;
+
+    // Set new ranges centered on the clicked point
+    let newXMin = complexX - newXRange / 2;
+    let newXMax = complexX + newXRange / 2;
+    let newYMin = complexY - newYRange / 2;
+    let newYMax = complexY + newYRange / 2;
+
+    // Update the range sliders
+    this.xRange.minVal = newXMin;
+    this.xRange.maxVal = newXMax;
+    this.yRange.minVal = newYMin;
+    this.yRange.maxVal = newYMax;
+
+    // Update knob positions
+    this.xRange.minKnobX = map(newXMin, this.xRange.minPossible, this.xRange.maxPossible, this.xRange.x, this.xRange.x + this.xRange.width);
+    this.xRange.maxKnobX = map(newXMax, this.xRange.minPossible, this.xRange.maxPossible, this.xRange.x, this.xRange.x + this.xRange.width);
+    this.yRange.minKnobX = map(newYMin, this.yRange.minPossible, this.yRange.maxPossible, this.yRange.x, this.yRange.x + this.yRange.width);
+    this.yRange.maxKnobX = map(newYMax, this.yRange.minPossible, this.yRange.maxPossible, this.yRange.x, this.yRange.x + this.yRange.width);
+
+    // Constrain knob positions within slider bounds
+    this.xRange.minKnobX = constrain(this.xRange.minKnobX, this.xRange.x, this.xRange.x + this.xRange.width);
+    this.xRange.maxKnobX = constrain(this.xRange.maxKnobX, this.xRange.x, this.xRange.x + this.xRange.width);
+    this.yRange.minKnobX = constrain(this.yRange.minKnobX, this.yRange.x, this.yRange.x + this.yRange.width);
+    this.yRange.maxKnobX = constrain(this.yRange.maxKnobX, this.yRange.x, this.yRange.x + this.yRange.width);
   }
 
   mouseDragged() {
