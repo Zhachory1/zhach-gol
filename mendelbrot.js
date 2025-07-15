@@ -238,7 +238,7 @@ class MendelbrotSimulation {
     this.yRange.y = windowHeight - 50;
     this.xRange.y = windowHeight - 70;
     this.resetButton.position(10, windowHeight - 90);
-    
+
     this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
     this.yRangeLabel.position(this.yRange.x + this.yRange.width + 10, this.yRange.y - 10);
     this.xRangeLabel.position(this.xRange.x + this.xRange.width + 10, this.xRange.y - 10);
@@ -330,7 +330,7 @@ class MendelbrotSimulation {
       (pos) => this.createIterSlider(pos),
       (pos) => this.createYRangeSlider(pos),
       (pos) => this.createXRangeSlider(pos),
-      (pos) => this.createResetButton(pos),
+      (pos) => this.createResetButton(pos + 30),@
     ];
 
     let height_pos = 30;
