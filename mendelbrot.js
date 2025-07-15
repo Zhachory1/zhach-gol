@@ -1,3 +1,4 @@
+
 // Custom RangeSlider Class
 class RangeSlider {
   constructor(x, y, w, h, minP, maxP, initialMin, initialMax) {
@@ -108,7 +109,7 @@ class RangeSlider {
 
 class MendelbrotSimulation {
   constructor() {
-    this.img = null
+    this.img = null;
     this.frameRate = 15;
 
     // UI elements
@@ -159,9 +160,6 @@ class MendelbrotSimulation {
 
   createXRangeSlider(height_pos) {
     // Create a new RangeSlider instance
-    // Parameters: 
-    //   x, y, width, height, minPossibleValue, 
-    //   maxPossibleValue, initialMin, initialMax
     this.xRange = new RangeSlider(10, windowHeight - height_pos, 180, 10, -2, 1, -2, 1);
 
     // Create text elements to display the values
@@ -177,14 +175,11 @@ class MendelbrotSimulation {
 
   createYRangeSlider(height_pos) {
     // Create a new RangeSlider instance
-    // Parameters: 
-    //   x, y, width, height, minPossibleValue, 
-    //   maxPossibleValue, initialMin, initialMax
     this.yRange = new RangeSlider(10, windowHeight - height_pos, 180, 10, -1, 1, -1, 1);
 
     // Create text elements to display the values
     this.yRangeLabel = createP(
-      this.xRangeStr + this.yRange.getMin() + "/" + this.yRange.getMax());
+      this.yRangeStr + this.yRange.getMin() + "/" + this.yRange.getMax());
     this.yRangeLabel.position(
       this.yRange.x + this.yRange.width + 10,
       this.yRange.y - 20);
@@ -206,8 +201,8 @@ class MendelbrotSimulation {
 
   repositionSliders() {
     this.iter.position(10, windowHeight - 30);
-    this.yRange.position(10, windowHeight - 50);
-    this.xRange.position(10, windowHeight - 70);
+    this.yRange.y = windowHeight - 50;
+    this.xRange.y = windowHeight - 70;
     this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
     this.yRangeLabel.position(this.yRange.x + this.yRange.width + 10, this.yRange.y - 10);
     this.xRangeLabel.position(this.xRange.x + this.xRange.width + 10, this.xRange.y - 10);
@@ -218,42 +213,48 @@ class MendelbrotSimulation {
     this.img.loadPixels();
 
     // precalculate some things in vars for quick and easier access
-    let iter_log = this.log(this.iter - 1);
+    let iter_log = this.log(this.iter.value() - 1);
     let xmin = this.xRange.getMin();
     let xmax = this.xRange.getMax();
     let ymin = this.yRange.getMin();
     let ymax = this.yRange.getMax();
-    let iter = this.iter.value();
+    let maxIter = this.iter.value();
 
-    // Set the pixels to black.
+    // Set the pixels based on Mandelbrot calculation
     for (let ix = 0; ix < this.img.width; ix += 1) {
       for (let iy = 0; iy < this.img.height; iy += 1) {
         let x = xmin + (xmax - xmin) * ix / (this.img.width - 1);
         let y = ymin + (ymax - ymin) * iy / (this.img.height - 1);
-        let i = this.mandelIter(x, y, iter);
+        let iterations = this.mandelIter(x, y, maxIter);
 
         // Each pixel has four values which is flattened into this
         // one image array (RGB + alpha). This is waaaay faster than
         // calling the this.img.set(x, y, Color()) method.
         let ppos = 4 * (this.img.width * iy + ix);
 
-        if (i > iter) {
-          this.img.pixels[ppos] = 0;
-          this.img.pixels[ppos + 1] = 0;
-          this.img.pixels[ppos + 2] = 0;
+        if (iterations >= maxIter) {
+          // Point is in the Mandelbrot set - make it black
+          this.img.pixels[ppos] = 0;     // Red
+          this.img.pixels[ppos + 1] = 0; // Green
+          this.img.pixels[ppos + 2] = 0; // Blue
         } else {
-          let c = 3 * this.log(i) / iter_log;
+          // Point escapes - color based on how quickly it escapes
+          // This creates a smooth color gradient
+          let c = 3 * this.log(iterations + 1) / iter_log;
 
           if (c < 1) {
+            // Red to yellow transition
             this.img.pixels[ppos] = 255 * c;
             this.img.pixels[ppos + 1] = 0;
             this.img.pixels[ppos + 2] = 0;
           }
           else if (c < 2) {
+            // Yellow to white transition
             this.img.pixels[ppos] = 255;
             this.img.pixels[ppos + 1] = 255 * (c - 1);
             this.img.pixels[ppos + 2] = 0;
           } else {
+            // White
             this.img.pixels[ppos] = 255;
             this.img.pixels[ppos + 1] = 255;
             this.img.pixels[ppos + 2] = 255 * (c - 2);
@@ -271,7 +272,7 @@ class MendelbrotSimulation {
 
   setup() {
     createCanvas(windowWidth, windowHeight);
-    this.img = createImage(1200, 600);
+    this.img = createImage(600, 400);
 
     const sliderFunctions = [
       (pos) => this.createIterSlider(pos),
@@ -279,7 +280,7 @@ class MendelbrotSimulation {
       (pos) => this.createXRangeSlider(pos),
     ];
 
-    let height_pos = 50;
+    let height_pos = 30;
     sliderFunctions.forEach((sliderFunc) => {
       sliderFunc(height_pos);
       height_pos += 20;
@@ -291,29 +292,28 @@ class MendelbrotSimulation {
     background(0);
 
     // Update img
-    this.updateImg()
+    this.updateImg();
 
-    // Display the image.
-    if (windowWidth / windowHeight >= 2.0) {
-      // fix height, width is bigger
-      image(this.img, 0, 0, windowHeight * 2, windowHeight);
-    } else {
-      // fix width, height is bidder
-      image(this.img, 0, 0, windowWidth / 2.0, windowWidth);
-    }
+    // Display the image centered
+    let imgWidth = this.img.width;
+    let imgHeight = this.img.height;
+    let x = (windowWidth - imgWidth) / 2;
+    let y = (windowHeight - imgHeight) / 2;
+    image(this.img, x, y);
 
-
+    // Update labels
     this.iterLabel.html(this.iterationStr + this.iter.value());
     this.xRangeLabel.html(this.xRangeStr +
-      this.xRange.getMin().toExponential(2) + "/" +
-      this.xRange.getMax().toExponential(2));
+      this.xRange.getMin().toFixed(3) + "/" +
+      this.xRange.getMax().toFixed(3));
     this.yRangeLabel.html(this.yRangeStr +
-      this.yRange.getMin().toExponential(2) + "/" +
-      this.yRange.getMax().toExponential(2));
+      this.yRange.getMin().toFixed(3) + "/" +
+      this.yRange.getMax().toFixed(3));
+    
+    // Display the sliders
     this.xRange.display();
     this.yRange.display();
   }
-
 
   mousePressed() {
     this.xRange.mousePressed();
@@ -332,7 +332,6 @@ class MendelbrotSimulation {
 
   windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    this.img = createImage(windowWidth, windowHeight);
     this.repositionSliders();
   }
 }
