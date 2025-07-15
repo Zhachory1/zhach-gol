@@ -326,6 +326,23 @@ class MendelbrotSimulation {
 
     this.img = createImage(Math.floor(imgWidth), Math.floor(imgHeight));
 
+    // Create instructions text block
+    this.instructionsText = createDiv(`
+      <strong>Mandelbrot Set Controls:</strong><br>
+      • Double-click to zoom in at cursor<br>
+      • Click "Reset View" to return to original view<br>
+      • Higher iterations reveal more detail
+    `);
+    this.instructionsText.position(windowWidth - 280, 10);
+    this.instructionsText.style('color', 'white');
+    this.instructionsText.style('font-family', 'monospace');
+    this.instructionsText.style('font-size', '12px');
+    this.instructionsText.style('background-color', 'rgba(0, 0, 0, 0.7)');
+    this.instructionsText.style('padding', '10px');
+    this.instructionsText.style('border-radius', '5px');
+    this.instructionsText.style('width', '250px');
+    this.instructionsText.style('line-height', '1.4');
+
     const sliderFunctions = [
       (pos) => this.createIterSlider(pos),
       (pos) => this.createYRangeSlider(pos),
@@ -457,6 +474,11 @@ class MendelbrotSimulation {
 
     this.img = createImage(Math.floor(imgWidth), Math.floor(imgHeight));
     this.repositionSliders();
+    
+    // Reposition instructions text
+    if (this.instructionsText) {
+      this.instructionsText.position(windowWidth - 280, 10);
+    }
   }
 }
 
