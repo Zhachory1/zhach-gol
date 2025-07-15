@@ -1,4 +1,5 @@
 
+
 // Custom RangeSlider Class
 class RangeSlider {
   constructor(x, y, w, h, minP, maxP, initialMin, initialMax) {
@@ -105,6 +106,14 @@ class RangeSlider {
   getMax() {
     return this.maxVal;
   }
+
+  // Method to reset values
+  resetValues(newMin, newMax) {
+    this.minVal = newMin;
+    this.maxVal = newMax;
+    this.minKnobX = map(this.minVal, this.minPossible, this.maxPossible, this.x, this.x + this.width);
+    this.maxKnobX = map(this.maxVal, this.minPossible, this.maxPossible, this.x, this.x + this.width);
+  }
 }
 
 class MendelbrotSimulation {
@@ -116,6 +125,7 @@ class MendelbrotSimulation {
     this.xRange = null;
     this.yRange = null;
     this.iter = null;
+    this.resetButton = null;
 
     this.xRangeLabel = null;
     this.yRangeLabel = null;
@@ -204,10 +214,31 @@ class MendelbrotSimulation {
     this.iterLabel.style('font-size', '16px');
   }
 
+  createResetButton(height_pos) {
+    this.resetButton = createButton('Reset View');
+    this.resetButton.position(10, windowHeight - height_pos);
+    this.resetButton.mousePressed(() => this.resetView());
+    this.resetButton.style('background-color', '#ff6b6b');
+    this.resetButton.style('color', 'white');
+    this.resetButton.style('border', 'none');
+    this.resetButton.style('padding', '8px 16px');
+    this.resetButton.style('font-size', '14px');
+    this.resetButton.style('cursor', 'pointer');
+    this.resetButton.style('border-radius', '4px');
+  }
+
+  resetView() {
+    // Reset to default view: X range -2 to 1, Y range -1 to 1
+    this.xRange.resetValues(-2, 1);
+    this.yRange.resetValues(-1, 1);
+  }
+
   repositionSliders() {
     this.iter.position(10, windowHeight - 30);
     this.yRange.y = windowHeight - 50;
     this.xRange.y = windowHeight - 70;
+    this.resetButton.position(10, windowHeight - 90);
+    
     this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
     this.yRangeLabel.position(this.yRange.x + this.yRange.width + 10, this.yRange.y - 10);
     this.xRangeLabel.position(this.xRange.x + this.xRange.width + 10, this.xRange.y - 10);
@@ -299,6 +330,7 @@ class MendelbrotSimulation {
       (pos) => this.createIterSlider(pos),
       (pos) => this.createYRangeSlider(pos),
       (pos) => this.createXRangeSlider(pos),
+      (pos) => this.createResetButton(pos),
     ];
 
     let height_pos = 30;
@@ -427,3 +459,4 @@ class MendelbrotSimulation {
     this.repositionSliders();
   }
 }
+
