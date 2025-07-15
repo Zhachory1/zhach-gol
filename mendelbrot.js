@@ -347,7 +347,7 @@ class MendelbrotSimulation {
       (pos) => this.createIterSlider(pos),
       (pos) => this.createYRangeSlider(pos),
       (pos) => this.createXRangeSlider(pos),
-      (pos) => this.createResetButton(pos + 30),@
+      (pos) => this.createResetButton(pos + 30),
     ];
 
     let height_pos = 30;
@@ -474,7 +474,7 @@ class MendelbrotSimulation {
 
     this.img = createImage(Math.floor(imgWidth), Math.floor(imgHeight));
     this.repositionSliders();
-    
+
     // Reposition instructions text
     if (this.instructionsText) {
       this.instructionsText.position(windowWidth - 280, 10);
