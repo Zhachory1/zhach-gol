@@ -35,6 +35,14 @@ function draw() {
   }
 }
 
+function doubleClicked() {
+  if (currentMode === 'conway') {
+    conwayGame.doubleClicked();
+  } else {
+    mendelbrotSim.doubleClicked();
+  }
+}
+
 function mousePressed() {
   if (currentMode === 'conway') {
     conwayGame.mousePressed();
@@ -50,6 +58,7 @@ function mouseDragged() {
     mendelbrotSim.mouseDragged();
   }
 }
+
 function mouseReleased() {
   if (currentMode === 'conway' && typeof conwayGame.mouseReleased === 'function') {
     conwayGame.mouseReleased();

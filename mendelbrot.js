@@ -165,7 +165,7 @@ class MendelbrotSimulation {
 
   createXRangeSlider(height_pos) {
     // Create a new RangeSlider instance
-    this.xRange = new RangeSlider(10, windowHeight - height_pos, 300, 10, -2, 1, -2, 1);
+    this.xRange = new RangeSlider(10, windowHeight - height_pos, 400, 10, -2, 1, -2, 1);
 
     // Create text elements to display the values
     this.xRangeLabel = createP(
@@ -180,7 +180,7 @@ class MendelbrotSimulation {
 
   createYRangeSlider(height_pos) {
     // Create a new RangeSlider instance
-    this.yRange = new RangeSlider(10, windowHeight - height_pos, 300, 10, -1, 1, -1, 1);
+    this.yRange = new RangeSlider(10, windowHeight - height_pos, 400, 10, -1, 1, -1, 1);
 
     // Create text elements to display the values
     this.yRangeLabel = createP(
@@ -196,7 +196,7 @@ class MendelbrotSimulation {
   createIterSlider(height_pos) {
     this.iter = createSlider(100, 1000, 250, 10);
     this.iter.position(10, windowHeight - height_pos);
-    this.iter.style('width', '300px');
+    this.iter.style('width', '400px');
     this.iterLabel = createElement('p', this.iterationStr + this.iter.value());
     this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
     this.iterLabel.style('color', 'white');
@@ -325,25 +325,27 @@ class MendelbrotSimulation {
     // Update labels
     this.iterLabel.html(this.iterationStr + this.iter.value());
     this.xRangeLabel.html(this.xRangeStr +
-      this.xRange.getMin().toFixed(3) + "/" +
-      this.xRange.getMax().toFixed(3));
+      this.xRange.getMin().toExponential(3) + "/" +
+      this.xRange.getMax().toExponential(3));
     this.yRangeLabel.html(this.yRangeStr +
-      this.yRange.getMin().toFixed(3) + "/" +
-      this.yRange.getMax().toFixed(3));
+      this.yRange.getMin().toExponential(3) + "/" +
+      this.yRange.getMax().toExponential(3));
 
     // Display the sliders
     this.xRange.display();
     this.yRange.display();
   }
 
-  mousePressed() {
+  doubleClicked() {
     // Check if click is on the image for zooming
     if (mouseX >= this.imgX && mouseX <= this.imgX + this.img.width &&
-        mouseY >= this.imgY && mouseY <= this.imgY + this.img.height) {
+      mouseY >= this.imgY && mouseY <= this.imgY + this.img.height) {
       this.zoomToPoint(mouseX, mouseY);
       return;
     }
+  }
 
+  mousePressed() {
     this.xRange.mousePressed();
     this.yRange.mousePressed();
   }
