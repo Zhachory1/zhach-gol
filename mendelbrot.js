@@ -1,111 +1,282 @@
+// Custom RangeSlider Class
+class RangeSlider {
+  constructor(x, y, w, h, minP, maxP, initialMin, initialMax) {
+    this.x = x;
+    this.y = y;
+    this.width = w;
+    this.height = h;
+    this.minPossible = minP; // Minimum possible value for the slider
+    this.maxPossible = maxP; // Maximum possible value for the slider
+
+    this.knobRadius = h * 1.2; // Size of the knobs
+
+    // Initial values for the min and max knobs
+    this.minVal = initialMin;
+    this.maxVal = initialMax;
+
+    // Convert initial values to pixel positions
+    this.minKnobX = map(this.minVal, this.minPossible, this.maxPossible, this.x, this.x + this.width);
+    this.maxKnobX = map(this.maxVal, this.minPossible, this.maxPossible, this.x, this.x + this.width);
+
+    this.draggingMin = false;
+    this.draggingMax = false;
+  }
+
+  display() {
+    // Draw the slider track
+    noStroke();
+    fill(150);
+    rect(this.x, this.y, this.width, this.height, this.height / 2); // Rounded rectangle
+
+    // Draw the selected range
+    fill(70, 130, 180); // Blue color for the selected range
+    let startFillX = min(this.minKnobX, this.maxKnobX);
+    let endFillX = max(this.minKnobX, this.maxKnobX);
+    rect(startFillX, this.y, endFillX - startFillX, this.height, this.height / 2);
+
+
+    // Draw the min knob
+    stroke(0);
+    strokeWeight(1);
+    if (this.draggingMin) {
+      fill(255, 100, 100); // Red when dragging
+    } else {
+      fill(255);
+    }
+    ellipse(this.minKnobX, this.y + this.height / 2, this.knobRadius);
+
+    // Draw the max knob
+    if (this.draggingMax) {
+      fill(100, 255, 100); // Green when dragging
+    } else {
+      fill(255);
+    }
+    ellipse(this.maxKnobX, this.y + this.height / 2, this.knobRadius);
+  }
+
+  // Check if mouse is over the min knob
+  isMouseOverMinKnob() {
+    let d = dist(mouseX, mouseY, this.minKnobX, this.y + this.height / 2);
+    return d < this.knobRadius / 2;
+  }
+
+  // Check if mouse is over the max knob
+  isMouseOverMaxKnob() {
+    let d = dist(mouseX, mouseY, this.maxKnobX, this.y + this.height / 2);
+    return d < this.knobRadius / 2;
+  }
+
+  mousePressed() {
+    if (this.isMouseOverMinKnob()) {
+      this.draggingMin = true;
+    } else if (this.isMouseOverMaxKnob()) {
+      this.draggingMax = true;
+    }
+  }
+
+  mouseDragged() {
+    if (this.draggingMin) {
+      // Constrain the knob's movement within the slider track
+      this.minKnobX = constrain(mouseX, this.x, this.x + this.width);
+      // Ensure min knob doesn't go beyond max knob
+      this.minKnobX = min(this.minKnobX, this.maxKnobX);
+      // Update the value
+      this.minVal = map(this.minKnobX, this.x, this.x + this.width, this.minPossible, this.maxPossible);
+    } else if (this.draggingMax) {
+      // Constrain the knob's movement within the slider track
+      this.maxKnobX = constrain(mouseX, this.x, this.x + this.width);
+      // Ensure max knob doesn't go below min knob
+      this.maxKnobX = max(this.maxKnobX, this.minKnobX);
+      // Update the value
+      this.maxVal = map(this.maxKnobX, this.x, this.x + this.width, this.minPossible, this.maxPossible);
+    }
+  }
+
+  mouseReleased() {
+    this.draggingMin = false;
+    this.draggingMax = false;
+  }
+
+  getMin() {
+    return this.minVal;
+  }
+
+  getMax() {
+    return this.maxVal;
+  }
+}
 
 class MendelbrotSimulation {
   constructor() {
-    this.grid = null;
-    this.cols = 0;
-    this.rows = 0;
-    this.resolution = 10;
-    
+    this.img = null
+    this.frameRate = 15;
+
     // UI elements
-    this.frSlider = null;
-    this.frLabel = null;
-    this.rebirthSlider = null;
-    this.rebirthLabel = null;
-    this.underPopSlider = null;
-    this.underPopLabel = null;
-    this.overPopSlider = null;
-    this.overPopLabel = null;
-    
+    this.xRange = null;
+    this.yRange = null;
+    this.iter = null;
+
+    this.xRangeLabel = null;
+    this.yRangeLabel = null;
+    this.iterLabel = null;
+
+    // memoize cache for log
+    this.log_cache = {};
+
     // String constants
-    this.rebirthStr = 'Rebirth Threshold: ';
-    this.underPopStr = 'Under Population Death Threshold: ';
-    this.overPopStr = 'Over Population Death Threshold: ';
+    this.xRangeStr = 'X Range Min/Max: ';
+    this.yRangeStr = 'Y Range Min/Max: ';
+    this.iterationStr = 'Convergence Threshold: ';
   }
 
-  randomColor() {
-    return color(
-      floor(random(255)),
-      floor(random(255)),
-      floor(random(255))
-    );
+  log(x) {
+    if (!(x in this.log_cache)) {
+      this.log_cache[x] = Math.log(x);
+    }
+    return this.log_cache[x];
   }
 
-  createFrameRateSlider(height_pos) {
-    this.frSlider = createSlider(1, 60, 30, 1);
-    this.frSlider.position(10, height - height_pos);
-    this.frSlider.style('width', '180px');
-    this.frLabel = createElement('p', 'FPS: 30');
-    this.frLabel.position(this.frSlider.x + this.frSlider.width + 10, this.frSlider.y - 10);
-    this.frLabel.style('color', 'white');
-    this.frLabel.style('font-family', 'monospace');
-    this.frLabel.style('font-size', '16px');
+  // Calculates whether the given point diverges to infinity or not.
+  // Will return 0 if it stays bounded. Otherwise, will return the
+  // number of iterations it took before it started diverging
+  mandelIter(cx, cy, maxIter) {
+    var x = 0.0;
+    var y = 0.0;
+    var xx = 0;
+    var yy = 0;
+    var xy = 0;
+
+    var i = maxIter;
+    while (i-- && xx + yy <= 4) {
+      xy = x * y;
+      xx = x * x;
+      yy = y * y;
+      x = xx - yy + cx;
+      y = xy + xy + cy;
+    }
+    return maxIter - i;
   }
 
-  createRebirthSlider(height_pos) {
-    this.rebirthSlider = createSlider(1, 7, 3, 1);
-    this.rebirthSlider.position(10, height - height_pos);
-    this.rebirthSlider.style('width', '180px');
-    this.rebirthLabel = createElement('p', this.rebirthStr + '3');
-    this.rebirthLabel.position(this.rebirthSlider.x + this.rebirthSlider.width + 10, this.rebirthSlider.y - 10);
-    this.rebirthLabel.style('color', 'white');
-    this.rebirthLabel.style('font-family', 'monospace');
-    this.rebirthLabel.style('font-size', '16px');
+  createXRangeSlider(height_pos) {
+    // Create a new RangeSlider instance
+    // Parameters: 
+    //   x, y, width, height, minPossibleValue, 
+    //   maxPossibleValue, initialMin, initialMax
+    this.xRange = new RangeSlider(10, windowHeight - height_pos, 180, 10, -2, 1, -2, 1);
+
+    // Create text elements to display the values
+    this.xRangeLabel = createP(
+      this.xRangeStr + this.xRange.getMin() + "/" + this.xRange.getMax());
+    this.xRangeLabel.position(
+      this.xRange.x + this.xRange.width + 10,
+      this.xRange.y - 20);
+    this.xRangeLabel.style('color', 'white');
+    this.xRangeLabel.style('font-family', 'monospace');
+    this.xRangeLabel.style('font-size', '16px');
   }
 
-  createUnderPopSlider(height_pos) {
-    this.underPopSlider = createSlider(1, 7, 2, 1);
-    this.underPopSlider.position(10, height - height_pos);
-    this.underPopSlider.style('width', '180px');
-    this.underPopLabel = createElement('p', this.underPopStr + '2');
-    this.underPopLabel.position(this.underPopSlider.x + this.underPopSlider.width + 10, this.underPopSlider.y - 10);
-    this.underPopLabel.style('color', 'white');
-    this.underPopLabel.style('font-family', 'monospace');
-    this.underPopLabel.style('font-size', '16px');
+  createYRangeSlider(height_pos) {
+    // Create a new RangeSlider instance
+    // Parameters: 
+    //   x, y, width, height, minPossibleValue, 
+    //   maxPossibleValue, initialMin, initialMax
+    this.yRange = new RangeSlider(10, windowHeight - height_pos, 180, 10, -1, 1, -1, 1);
+
+    // Create text elements to display the values
+    this.yRangeLabel = createP(
+      this.xRangeStr + this.yRange.getMin() + "/" + this.yRange.getMax());
+    this.yRangeLabel.position(
+      this.yRange.x + this.yRange.width + 10,
+      this.yRange.y - 20);
+    this.yRangeLabel.style('color', 'white');
+    this.yRangeLabel.style('font-family', 'monospace');
+    this.yRangeLabel.style('font-size', '16px');
   }
 
-  createOverPopSlider(height_pos) {
-    this.overPopSlider = createSlider(1, 7, 3, 1);
-    this.overPopSlider.position(10, height - height_pos);
-    this.overPopSlider.style('width', '180px');
-    this.overPopLabel = createElement('p', this.overPopStr + '3');
-    this.overPopLabel.position(this.overPopSlider.x + this.overPopSlider.width + 10, this.overPopSlider.y - 10);
-    this.overPopLabel.style('color', 'white');
-    this.overPopLabel.style('font-family', 'monospace');
-    this.overPopLabel.style('font-size', '16px');
+  createIterSlider(height_pos) {
+    this.iter = createSlider(100, 1000, 250, 10);
+    this.iter.position(10, windowHeight - height_pos);
+    this.iter.style('width', '180px');
+    this.iterLabel = createElement('p', this.iterationStr + this.iter.value());
+    this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
+    this.iterLabel.style('color', 'white');
+    this.iterLabel.style('font-family', 'monospace');
+    this.iterLabel.style('font-size', '16px');
   }
 
   repositionSliders() {
-    this.frSlider.position(10, height - 30);
-    this.rebirthSlider.position(10, height - 50);
-    this.overPopSlider.position(10, height - 70);
-    this.underPopSlider.position(10, height - 90);
-    this.frLabel.position(this.frSlider.x + this.frSlider.width + 10, this.frSlider.y - 10);
-    this.rebirthLabel.position(this.rebirthSlider.x + this.rebirthSlider.width + 10, this.rebirthSlider.y - 10);
-    this.underPopLabel.position(this.underPopSlider.x + this.underPopSlider.width + 10, this.underPopSlider.y - 10);
-    this.overPopLabel.position(this.overPopSlider.x + this.overPopSlider.width + 10, this.overPopSlider.y - 10);
+    this.iter.position(10, windowHeight - 30);
+    this.yRange.position(10, windowHeight - 50);
+    this.xRange.position(10, windowHeight - 70);
+    this.iterLabel.position(this.iter.x + this.iter.width + 10, this.iter.y - 10);
+    this.yRangeLabel.position(this.yRange.x + this.yRange.width + 10, this.yRange.y - 10);
+    this.xRangeLabel.position(this.xRange.x + this.xRange.width + 10, this.xRange.y - 10);
+  }
+
+  updateImg() {
+    // Load the image's pixels.
+    this.img.loadPixels();
+
+    // precalculate some things in vars for quick and easier access
+    let iter_log = this.log(this.iter - 1);
+    let xmin = this.xRange.getMin();
+    let xmax = this.xRange.getMax();
+    let ymin = this.yRange.getMin();
+    let ymax = this.yRange.getMax();
+    let iter = this.iter.value();
+
+    // Set the pixels to black.
+    for (let ix = 0; ix < this.img.width; ix += 1) {
+      for (let iy = 0; iy < this.img.height; iy += 1) {
+        let x = xmin + (xmax - xmin) * ix / (this.img.width - 1);
+        let y = ymin + (ymax - ymin) * iy / (this.img.height - 1);
+        let i = this.mandelIter(x, y, iter);
+
+        // Each pixel has four values which is flattened into this
+        // one image array (RGB + alpha). This is waaaay faster than
+        // calling the this.img.set(x, y, Color()) method.
+        let ppos = 4 * (this.img.width * iy + ix);
+
+        if (i > iter) {
+          this.img.pixels[ppos] = 0;
+          this.img.pixels[ppos + 1] = 0;
+          this.img.pixels[ppos + 2] = 0;
+        } else {
+          let c = 3 * this.log(i) / iter_log;
+
+          if (c < 1) {
+            this.img.pixels[ppos] = 255 * c;
+            this.img.pixels[ppos + 1] = 0;
+            this.img.pixels[ppos + 2] = 0;
+          }
+          else if (c < 2) {
+            this.img.pixels[ppos] = 255;
+            this.img.pixels[ppos + 1] = 255 * (c - 1);
+            this.img.pixels[ppos + 2] = 0;
+          } else {
+            this.img.pixels[ppos] = 255;
+            this.img.pixels[ppos + 1] = 255;
+            this.img.pixels[ppos + 2] = 255 * (c - 2);
+          }
+        }
+
+        // Always set alpha to full value to get full color
+        this.img.pixels[ppos + 3] = 255;
+      }
+    }
+
+    // Update the image.
+    this.img.updatePixels();
   }
 
   setup() {
     createCanvas(windowWidth, windowHeight);
-    this.cols = floor(width / this.resolution);
-    this.rows = floor(height / this.resolution);
-
-    this.grid = this.make2DArray(this.cols, this.rows);
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        if (floor(random(2)) == 1) {
-          this.grid[i][j] = this.randomColor();
-        } else {
-          this.grid[i][j] = 0;
-        }
-      }
-    }
+    this.img = createImage(1200, 600);
 
     const sliderFunctions = [
-      (pos) => this.createFrameRateSlider(pos),
-      (pos) => this.createRebirthSlider(pos),
-      (pos) => this.createOverPopSlider(pos),
-      (pos) => this.createUnderPopSlider(pos)
+      (pos) => this.createIterSlider(pos),
+      (pos) => this.createYRangeSlider(pos),
+      (pos) => this.createXRangeSlider(pos),
     ];
 
     let height_pos = 50;
@@ -116,97 +287,52 @@ class MendelbrotSimulation {
   }
 
   draw() {
-    let fps = this.frSlider.value();
-    frameRate(fps);
+    frameRate(this.frameRate);
     background(0);
 
-    // Draw the grid
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        let x = i * this.resolution;
-        let y = j * this.resolution;
-        if (this.grid[i][j] != 0) {
-          fill(this.grid[i][j]);
-          stroke(0);
-          rect(x, y, this.resolution - 1, this.resolution - 1);
-        }
-      }
+    // Update img
+    this.updateImg()
+
+    // Display the image.
+    if (windowWidth / windowHeight >= 2.0) {
+      // fix height, width is bigger
+      image(this.img, 0, 0, windowHeight * 2, windowHeight);
+    } else {
+      // fix width, height is bidder
+      image(this.img, 0, 0, windowWidth / 2.0, windowWidth);
     }
 
-    // Compute the next generation
-    let next = this.make2DArray(this.cols, this.rows);
 
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        let state = this.grid[i][j];
-
-        // Count live neighbours
-        let sum = 0;
-        for (let k = -1; k <= 1; k++) {
-          for (let l = -1; l <= 1; l++) {
-            let col = (i + k + this.cols) % this.cols;
-            let row = (j + l + this.rows) % this.rows;
-            if (this.grid[col][row] != 0) {
-              sum += 1;
-            }
-          }
-        }
-        sum -= state == 0 ? 0 : 1;
-
-        // Apply Conway's Game of Life rules
-        if (state != 0 && (sum < this.underPopSlider.value() || sum > this.overPopSlider.value())) {
-          next[i][j] = 0;
-        } else if (state == 0 && sum == this.rebirthSlider.value()) {
-          next[i][j] = this.randomColor();
-        } else {
-          next[i][j] = state;
-        }
-      }
-    }
-
-    this.frLabel.html('FPS: ' + fps);
-    this.rebirthLabel.html(this.rebirthStr + this.rebirthSlider.value());
-    this.underPopLabel.html(this.underPopStr + this.underPopSlider.value());
-    this.overPopLabel.html(this.overPopStr + this.overPopSlider.value());
-    this.grid = next;
+    this.iterLabel.html(this.iterationStr + this.iter.value());
+    this.xRangeLabel.html(this.xRangeStr +
+      this.xRange.getMin().toExponential(2) + "/" +
+      this.xRange.getMax().toExponential(2));
+    this.yRangeLabel.html(this.yRangeStr +
+      this.yRange.getMin().toExponential(2) + "/" +
+      this.yRange.getMax().toExponential(2));
+    this.xRange.display();
+    this.yRange.display();
   }
 
-  make2DArray(cols, rows) {
-    let arr = new Array(cols);
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] = new Array(rows);
-    }
-    return arr;
-  }
 
   mousePressed() {
-    this.drawCellAtMouse();
+    this.xRange.mousePressed();
+    this.yRange.mousePressed();
   }
 
   mouseDragged() {
-    this.drawCellAtMouse();
+    this.xRange.mouseDragged();
+    this.yRange.mouseDragged();
   }
 
-  drawCellAtMouse() {
-    let mouseCol = floor(mouseX / this.resolution);
-    let mouseRow = floor(mouseY / this.resolution);
-
-    if (mouseCol >= 0 && mouseCol < this.cols && mouseRow >= 0 && mouseRow < this.rows && mouseY < height) {
-      this.grid[mouseCol][mouseRow] = this.randomColor();
-    }
+  mouseReleased() {
+    this.xRange.mouseReleased();
+    this.yRange.mouseReleased();
   }
 
   windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    this.cols = floor(width / this.resolution);
-    this.rows = floor(height / this.resolution);
-    let tempGrid = this.make2DArray(this.cols, this.rows);
-    for (let i = 0; i < min(this.cols, this.grid.length); i++) {
-      for (let j = 0; j < min(this.rows, this.grid[0].length); j++) {
-        tempGrid[i][j] = this.grid[i][j];
-      }
-    }
-    this.grid = tempGrid;
+    this.img = createImage(windowWidth, windowHeight);
     this.repositionSliders();
   }
 }
