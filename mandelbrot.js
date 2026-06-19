@@ -116,7 +116,7 @@ class RangeSlider {
   }
 }
 
-class MendelbrotSimulation {
+class MandelbrotSimulation {
   constructor() {
     this.img = null;
     this.frameRate = 15;
@@ -231,6 +231,32 @@ class MendelbrotSimulation {
     // Reset to default view: X range -2 to 1, Y range -1 to 1
     this.xRange.resetValues(-2, 1);
     this.yRange.resetValues(-1, 1);
+  }
+
+  getPreset() {
+    return {
+      xMin: this.xRange.getMin(),
+      xMax: this.xRange.getMax(),
+      yMin: this.yRange.getMin(),
+      yMax: this.yRange.getMax(),
+      iter: this.iter.value(),
+    };
+  }
+
+  applyPreset(params) {
+    const xMin = Number(params.get('xMin'));
+    const xMax = Number(params.get('xMax'));
+    const yMin = Number(params.get('yMin'));
+    const yMax = Number(params.get('yMax'));
+    const iter = Number(params.get('iter'));
+
+    if ([xMin, xMax, yMin, yMax].every(Number.isFinite) && xMin < xMax && yMin < yMax) {
+      this.xRange.resetValues(xMin, xMax);
+      this.yRange.resetValues(yMin, yMax);
+    }
+    if (Number.isFinite(iter)) {
+      this.iter.value(constrain(iter, 100, 1000));
+    }
   }
 
   repositionSliders() {
