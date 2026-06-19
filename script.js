@@ -1,29 +1,60 @@
-
-let currentMode = 'conway'; // 'conway' or 'mendelbrot'
+let currentMode = 'conway'; // 'conway' or 'mandelbrot'
 let toggleButton;
+let shareButton;
 let conwayGame;
-let mendelbrotSim;
+let mandelbrotSim;
+let currentSeed;
+
+function getUrlParams() {
+  return new URLSearchParams(window.location.search);
+}
+
+function numberParam(params, key, fallback) {
+  const parsed = Number(params.get(key));
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
 
 function setup() {
-  // Create class instances
-  conwayGame = new ConwayGameOfLife();
-  mendelbrotSim = new MendelbrotSimulation();
+  const params = getUrlParams();
+  currentMode = params.get('mode') === 'mandelbrot' ? 'mandelbrot' : 'conway';
+  currentSeed = numberParam(params, 'seed', Math.floor(Math.random() * 1000000000));
+  randomSeed(currentSeed);
 
-  // Create toggle button
-  toggleButton = createButton('Switch to Mendelbrot');
+  conwayGame = new ConwayGameOfLife();
+  mandelbrotSim = new MandelbrotSimulation();
+
+  createControls();
+  setupCurrentMode(params);
+}
+
+function createControls() {
+  toggleButton = createButton(currentMode === 'conway' ? 'Switch to Mandelbrot' : 'Switch to Conway');
   toggleButton.position(10, 10);
   toggleButton.mousePressed(toggleMode);
-  toggleButton.style('background-color', '#4CAF50');
-  toggleButton.style('color', 'white');
-  toggleButton.style('border', 'none');
-  toggleButton.style('padding', '10px 20px');
-  toggleButton.style('font-size', '16px');
-  toggleButton.style('cursor', 'pointer');
+  styleButton(toggleButton, '#4CAF50');
 
+  shareButton = createButton('Copy Share URL');
+  shareButton.position(190, 10);
+  shareButton.mousePressed(copyShareUrl);
+  styleButton(shareButton, '#3b82f6');
+}
+
+function styleButton(button, backgroundColor) {
+  button.style('background-color', backgroundColor);
+  button.style('color', 'white');
+  button.style('border', 'none');
+  button.style('padding', '10px 20px');
+  button.style('font-size', '16px');
+  button.style('cursor', 'pointer');
+}
+
+function setupCurrentMode(params = getUrlParams()) {
   if (currentMode === 'conway') {
+    randomSeed(currentSeed);
     conwayGame.setup();
   } else {
-    mendelbrotSim.setup();
+    mandelbrotSim.setup();
+    mandelbrotSim.applyPreset(params);
   }
 }
 
@@ -31,15 +62,15 @@ function draw() {
   if (currentMode === 'conway') {
     conwayGame.draw();
   } else {
-    mendelbrotSim.draw();
+    mandelbrotSim.draw();
   }
 }
 
 function doubleClicked() {
   if (currentMode === 'conway') {
-    conwayGame.doubleClicked();
+    if (typeof conwayGame.doubleClicked === 'function') conwayGame.doubleClicked();
   } else {
-    mendelbrotSim.doubleClicked();
+    mandelbrotSim.doubleClicked();
   }
 }
 
@@ -47,7 +78,7 @@ function mousePressed() {
   if (currentMode === 'conway') {
     conwayGame.mousePressed();
   } else {
-    mendelbrotSim.mousePressed();
+    mandelbrotSim.mousePressed();
   }
 }
 
@@ -55,56 +86,58 @@ function mouseDragged() {
   if (currentMode === 'conway') {
     conwayGame.mouseDragged();
   } else {
-    mendelbrotSim.mouseDragged();
+    mandelbrotSim.mouseDragged();
   }
 }
 
 function mouseReleased() {
   if (currentMode === 'conway' && typeof conwayGame.mouseReleased === 'function') {
     conwayGame.mouseReleased();
-  } else {
-    mendelbrotSim.mouseReleased();
+  } else if (currentMode === 'mandelbrot') {
+    mandelbrotSim.mouseReleased();
   }
 }
 
 function windowResized() {
-  // Update button position
   toggleButton.position(10, 10);
+  shareButton.position(190, 10);
 
   if (currentMode === 'conway') {
     conwayGame.windowResized();
   } else {
-    mendelbrotSim.windowResized();
+    mandelbrotSim.windowResized();
   }
 }
 
 function toggleMode() {
-  // Clear existing elements
   removeElements();
+  currentMode = currentMode === 'conway' ? 'mandelbrot' : 'conway';
+  createControls();
+  setupCurrentMode();
+}
 
-  // Switch mode
-  if (currentMode === 'conway') {
-    currentMode = 'mendelbrot';
-    toggleButton = createButton('Switch to Conway');
-  } else {
-    currentMode = 'conway';
-    toggleButton = createButton('Switch to Mendelbrot');
+function currentShareUrl() {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.searchParams.set('mode', currentMode);
+  url.searchParams.set('seed', String(currentSeed));
+
+  if (currentMode === 'mandelbrot') {
+    for (const [key, value] of Object.entries(mandelbrotSim.getPreset())) {
+      url.searchParams.set(key, String(value));
+    }
   }
 
-  // Style the new button
-  toggleButton.position(10, 10);
-  toggleButton.mousePressed(toggleMode);
-  toggleButton.style('background-color', '#4CAF50');
-  toggleButton.style('color', 'white');
-  toggleButton.style('border', 'none');
-  toggleButton.style('padding', '10px 20px');
-  toggleButton.style('font-size', '16px');
-  toggleButton.style('cursor', 'pointer');
+  return url.toString();
+}
 
-  // Setup the new mode
-  if (currentMode === 'conway') {
-    conwayGame.setup();
+async function copyShareUrl() {
+  const shareUrl = currentShareUrl();
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(shareUrl);
+    shareButton.html('Copied!');
+    setTimeout(() => shareButton.html('Copy Share URL'), 1200);
   } else {
-    mendelbrotSim.setup();
+    window.prompt('Copy this URL', shareUrl);
   }
 }
