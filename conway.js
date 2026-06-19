@@ -15,6 +15,11 @@ class ConwayGameOfLife {
     this.underPopLabel = null;
     this.overPopSlider = null;
     this.overPopLabel = null;
+    this.pauseButton = null;
+    this.stepButton = null;
+    this.clearButton = null;
+    this.randomizeButton = null;
+    this.paused = false;
     
     // String constants
     this.rebirthStr = 'Rebirth Threshold: ';
@@ -74,6 +79,22 @@ class ConwayGameOfLife {
     this.overPopLabel.style('font-size', '16px');
   }
 
+  createControlButtons(height_pos) {
+    this.pauseButton = createButton('Pause');
+    this.stepButton = createButton('Step');
+    this.clearButton = createButton('Clear');
+    this.randomizeButton = createButton('Randomize');
+    const buttons = [this.pauseButton, this.stepButton, this.clearButton, this.randomizeButton];
+    buttons.forEach((button, index) => {
+      button.position(10 + index * 92, height - height_pos);
+      button.style('padding', '6px 10px');
+    });
+    this.pauseButton.mousePressed(() => this.togglePause());
+    this.stepButton.mousePressed(() => this.stepOnce());
+    this.clearButton.mousePressed(() => this.clearGrid());
+    this.randomizeButton.mousePressed(() => this.randomizeGrid());
+  }
+
   repositionSliders() {
     this.frSlider.position(10, height - 30);
     this.rebirthSlider.position(10, height - 50);
@@ -83,6 +104,9 @@ class ConwayGameOfLife {
     this.rebirthLabel.position(this.rebirthSlider.x + this.rebirthSlider.width + 10, this.rebirthSlider.y - 10);
     this.underPopLabel.position(this.underPopSlider.x + this.underPopSlider.width + 10, this.underPopSlider.y - 10);
     this.overPopLabel.position(this.overPopSlider.x + this.overPopSlider.width + 10, this.overPopSlider.y - 10);
+    [this.pauseButton, this.stepButton, this.clearButton, this.randomizeButton].forEach((button, index) => {
+      if (button) button.position(10 + index * 92, height - 120);
+    });
   }
 
   setup() {
@@ -91,21 +115,14 @@ class ConwayGameOfLife {
     this.rows = floor(height / this.resolution);
 
     this.grid = this.make2DArray(this.cols, this.rows);
-    for (let i = 0; i < this.cols; i++) {
-      for (let j = 0; j < this.rows; j++) {
-        if (floor(random(2)) == 1) {
-          this.grid[i][j] = this.randomColor();
-        } else {
-          this.grid[i][j] = 0;
-        }
-      }
-    }
+    this.randomizeGrid();
 
     const sliderFunctions = [
       (pos) => this.createFrameRateSlider(pos),
       (pos) => this.createRebirthSlider(pos),
       (pos) => this.createOverPopSlider(pos),
-      (pos) => this.createUnderPopSlider(pos)
+      (pos) => this.createUnderPopSlider(pos),
+      (pos) => this.createControlButtons(pos + 10)
     ];
 
     let height_pos = 30;
@@ -168,7 +185,39 @@ class ConwayGameOfLife {
     this.rebirthLabel.html(this.rebirthStr + this.rebirthSlider.value());
     this.underPopLabel.html(this.underPopStr + this.underPopSlider.value());
     this.overPopLabel.html(this.overPopStr + this.overPopSlider.value());
-    this.grid = next;
+    if (!this.paused) {
+      this.grid = next;
+    }
+  }
+
+  togglePause() {
+    this.paused = !this.paused;
+    this.pauseButton.html(this.paused ? 'Resume' : 'Pause');
+  }
+
+  stepOnce() {
+    const wasPaused = this.paused;
+    this.paused = false;
+    this.draw();
+    this.paused = wasPaused || true;
+    this.pauseButton.html('Resume');
+  }
+
+  clearGrid() {
+    this.grid = this.make2DArray(this.cols, this.rows);
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        this.grid[i][j] = 0;
+      }
+    }
+  }
+
+  randomizeGrid() {
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        this.grid[i][j] = floor(random(2)) === 1 ? this.randomColor() : 0;
+      }
+    }
   }
 
   make2DArray(cols, rows) {

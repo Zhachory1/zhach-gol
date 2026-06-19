@@ -24,5 +24,11 @@ assert(script.includes('applyPreset(params)'), 'applies URL preset params');
 assert(mandelbrot.includes('getPreset()'), 'Mandelbrot exposes preset state');
 assert(mandelbrot.includes('applyPreset(params)'), 'Mandelbrot accepts preset state');
 assert(conway.includes('class ConwayGameOfLife'), 'Conway class exists');
+for (const method of ['togglePause()', 'stepOnce()', 'clearGrid()', 'randomizeGrid()']) {
+  assert(conway.includes(method), `Conway exposes ${method}`);
+}
+for (const label of ['Pause', 'Step', 'Clear', 'Randomize']) {
+  assert(conway.includes(label), `Conway includes ${label} control`);
+}
 
 console.log('static smoke tests passed');
