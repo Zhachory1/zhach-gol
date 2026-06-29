@@ -236,6 +236,8 @@ class ConwayGameOfLife {
     this.drawCellAtMouse();
   }
 
+  doubleClicked() {}
+
   drawCellAtMouse() {
     let mouseCol = floor(mouseX / this.resolution);
     let mouseRow = floor(mouseY / this.resolution);

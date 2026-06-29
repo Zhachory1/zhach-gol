@@ -16,6 +16,9 @@ assert(!mandelbrot.includes('Mendelbrot'), 'does not contain misspelled Mandelbr
 for (const handler of ['setup', 'draw', 'mousePressed', 'mouseDragged', 'mouseReleased', 'windowResized']) {
   assert(script.includes(`function ${handler}(`), `defines ${handler} handler`);
 }
+assert(script.includes('function doubleClicked()'), 'defines double-click handler');
+assert(conway.includes('doubleClicked()'), 'Conway handles double-click safely');
+assert(mandelbrot.includes('doubleClicked()'), 'Mandelbrot handles double-click');
 
 assert(script.includes('Copy Share URL'), 'adds share URL control');
 assert(script.includes("url.searchParams.set('mode'"), 'share URL includes mode');
