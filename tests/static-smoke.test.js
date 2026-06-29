@@ -9,6 +9,8 @@ const conway = fs.readFileSync('conway.js', 'utf8');
 assert(html.includes('conway.js'), 'loads Conway script');
 assert(html.includes('mandelbrot.js'), 'loads Mandelbrot script');
 assert(!html.includes('mendelbrot.js'), 'does not load misspelled Mandelbrot script');
+assert(html.includes('Conway + Mandelbrot Playground'), 'title reflects both modes');
+assert(html.includes('Small p5.js playground'), 'metadata defines small playground scope');
 
 assert(mandelbrot.includes('class MandelbrotSimulation'), 'uses correctly spelled Mandelbrot class');
 assert(!mandelbrot.includes('Mendelbrot'), 'does not contain misspelled Mandelbrot class name');
