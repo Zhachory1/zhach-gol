@@ -17,6 +17,11 @@ for (const handler of ['setup', 'draw', 'mousePressed', 'mouseDragged', 'mouseRe
   assert(script.includes(`function ${handler}(`), `defines ${handler} handler`);
 }
 
+for (const handler of ['doubleClicked', 'mousePressed', 'mouseDragged', 'mouseReleased', 'windowResized']) {
+  assert(script.includes(`typeof conwayGame.${handler} === 'function'`), `guards optional Conway ${handler}`);
+  assert(script.includes(`typeof mandelbrotSim.${handler} === 'function'`), `guards optional Mandelbrot ${handler}`);
+}
+
 assert(script.includes('Copy Share URL'), 'adds share URL control');
 assert(script.includes("url.searchParams.set('mode'"), 'share URL includes mode');
 assert(script.includes("url.searchParams.set('seed'"), 'share URL includes seed');
