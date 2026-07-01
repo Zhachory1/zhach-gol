@@ -67,25 +67,25 @@ function draw() {
 }
 
 function doubleClicked() {
-  if (currentMode === 'conway') {
-    if (typeof conwayGame.doubleClicked === 'function') conwayGame.doubleClicked();
-  } else {
+  if (currentMode === 'conway' && typeof conwayGame.doubleClicked === 'function') {
+    conwayGame.doubleClicked();
+  } else if (currentMode === 'mandelbrot' && typeof mandelbrotSim.doubleClicked === 'function') {
     mandelbrotSim.doubleClicked();
   }
 }
 
 function mousePressed() {
-  if (currentMode === 'conway') {
+  if (currentMode === 'conway' && typeof conwayGame.mousePressed === 'function') {
     conwayGame.mousePressed();
-  } else {
+  } else if (currentMode === 'mandelbrot' && typeof mandelbrotSim.mousePressed === 'function') {
     mandelbrotSim.mousePressed();
   }
 }
 
 function mouseDragged() {
-  if (currentMode === 'conway') {
+  if (currentMode === 'conway' && typeof conwayGame.mouseDragged === 'function') {
     conwayGame.mouseDragged();
-  } else {
+  } else if (currentMode === 'mandelbrot' && typeof mandelbrotSim.mouseDragged === 'function') {
     mandelbrotSim.mouseDragged();
   }
 }
@@ -93,7 +93,7 @@ function mouseDragged() {
 function mouseReleased() {
   if (currentMode === 'conway' && typeof conwayGame.mouseReleased === 'function') {
     conwayGame.mouseReleased();
-  } else if (currentMode === 'mandelbrot') {
+  } else if (currentMode === 'mandelbrot' && typeof mandelbrotSim.mouseReleased === 'function') {
     mandelbrotSim.mouseReleased();
   }
 }
@@ -102,9 +102,9 @@ function windowResized() {
   toggleButton.position(10, 10);
   shareButton.position(190, 10);
 
-  if (currentMode === 'conway') {
+  if (currentMode === 'conway' && typeof conwayGame.windowResized === 'function') {
     conwayGame.windowResized();
-  } else {
+  } else if (currentMode === 'mandelbrot' && typeof mandelbrotSim.windowResized === 'function') {
     mandelbrotSim.windowResized();
   }
 }

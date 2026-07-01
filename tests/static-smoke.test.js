@@ -22,6 +22,11 @@ assert(script.includes('function doubleClicked()'), 'defines double-click handle
 assert(conway.includes('doubleClicked()'), 'Conway handles double-click safely');
 assert(mandelbrot.includes('doubleClicked()'), 'Mandelbrot handles double-click');
 
+for (const handler of ['doubleClicked', 'mousePressed', 'mouseDragged', 'mouseReleased', 'windowResized']) {
+  assert(script.includes(`typeof conwayGame.${handler} === 'function'`), `guards optional Conway ${handler}`);
+  assert(script.includes(`typeof mandelbrotSim.${handler} === 'function'`), `guards optional Mandelbrot ${handler}`);
+}
+
 assert(script.includes('Copy Share URL'), 'adds share URL control');
 assert(script.includes("url.searchParams.set('mode'"), 'share URL includes mode');
 assert(script.includes("url.searchParams.set('seed'"), 'share URL includes seed');
